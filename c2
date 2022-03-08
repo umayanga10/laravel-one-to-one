@@ -1,0 +1,3654 @@
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">ADD ZONE</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('zone/save')}}" method="post" name="zone_form" id="zone_form" onsubmit="zone_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">&nbsp</th>
+                            <th style="text-align: center">SALES DIVISION</th>
+                            <th style="text-align: center">ZONE CODE</th>
+                            <th style="text-align: center">ZONE NAME</th>
+                            <th style="text-align: center">&nbsp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="zone">
+                        <tr id="tr_1">
+                            <td style="text-align: center">
+                                <span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">
+                                    <i class="bi bi-plus-square-fill"></i>
+                                </span>
+                            </td>
+                            <td>
+                                <select id="sales_division_1" name="sales_division_1" class="col-md-12 form-control form-control-sm js-example-basic-single">
+                                    <option value="">SELECT SALES DIVISION</option>
+                                    @foreach ($sales_division as $sd)
+                                    <option value="{{$sd->sd_id}}">{{$sd->sd_name}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" id="zone_code_1" name="zone_code_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                                <input type="text" id="zone_name_1" name="zone_name_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td style="text-align: center">
+                                <span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('1');">
+                                    <i class="bi bi-x-square-fill"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'zone_form')">SAVE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+
+    /* GENERATE NEW ROW */
+    function gen_item(){
+        var num = parseFloat($('#item_count').val()) + 1;
+        $('#item_count').val(num);
+        var delete_count = parseFloat($('#delete_item_count').val()) + 1;
+        $('#delete_item_count').val(delete_count);
+        $('#zone').append('<tr class="even pointer" id="tr_' + num + '">'
+                + '<td style="text-align: center">'
+                    + '<span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">'
+                    +     '<i class="bi bi-plus-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '<td>'
+                    +'<select id="sales_division_' + num + '" name="sales_division_' + num + '" class="col-md-12 form-control form-control-sm js-example-basic-single">'
+                        +'<option value="">SELECT SALES DIVISION</option>'
+                    +'</select>'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="zone_code_' + num + '" name="zone_code_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="zone_name_' + num + '" name="zone_name_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td style="text-align: center">'
+                    + '<span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('+ num +');">'
+                    +    '<i class="bi bi-x-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '</tr>');
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('/zone/get_sales_division') }}",
+                    data: {
+                        "_token": "{{ csrf_token() }}"
+                    },
+                    success: function (data) {
+                        for(var i = 0; i < data.length; i++){
+                            $('#sales_division_'+num).append('<option value="'+data[i].sd_id+'">'+data[i].sd_name+'</option>')
+                        }
+                    }
+                });        
+        $('.js-example-basic-single').select2();
+        $('#sales_division_'+num).focus();
+    }
+
+    /*REMOVE GENERATED ROW*/
+    function remove_item(num) {
+        $('#tr_' + num).remove();
+        var num = parseFloat($('#delete_item_count').val()) - 1;
+        $('#delete_item_count').val(num);
+        if (num == 0) {
+            gen_item();
+        }
+    }
+
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function zone_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#sales_division_' + m).val() == "") {
+                valid = false;
+                $('#sales_division_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Sales Division'
+                });
+                break;
+            } else if ($('#zone_code_' + m).val() == "") {
+                valid = false;
+                $('#zone_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Zone Code'
+                });
+                break;
+            } else if ($('#zone_name_' + m).val() == "") {
+                valid = false;
+                $('#zone_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Zone Name'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (zone_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+@endsection
+
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">ADD REGION</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('region/save')}}" method="post" name="region_form" id="region_form" onsubmit="region_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">&nbsp</th>
+                            <th style="text-align: center">ZONE</th>
+                            <th style="text-align: center">REGION CODE</th>
+                            <th style="text-align: center">REGION NAME</th>
+                            <th style="text-align: center">&nbsp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="region">
+                        <tr id="tr_1">
+                            <td style="text-align: center">
+                                <span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">
+                                    <i class="bi bi-plus-square-fill"></i>
+                                </span>
+                            </td>
+                            <td>
+                            <select id="zone_1" name="zone_1" class="col-md-12 form-control form-control-sm js-example-basic-single">
+                                <option value="">SELECT ZONE</option>
+                                @foreach ($zone as $z)
+                                <option value="{{$z->z_id}}">{{$z->z_name}}</option>
+                                @endforeach
+                            </select>
+                            </td>
+                            <td>
+                            <input type="text" id="region_code_1" name="region_code_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                            <input type="text" id="region_name_1" name="region_name_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td style="text-align: center">
+                                <span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('1');">
+                                    <i class="bi bi-x-square-fill"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'region_form')">SAVE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    /* GENERATE NEW ROW */
+    function gen_item(){
+        var num = parseFloat($('#item_count').val()) + 1;
+        $('#item_count').val(num);
+        var delete_count = parseFloat($('#delete_item_count').val()) + 1;
+        $('#delete_item_count').val(delete_count);
+        $('#region').append('<tr class="even pointer" id="tr_' + num + '">'
+                + '<td style="text-align: center">'
+                    + '<span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">'
+                    +     '<i class="bi bi-plus-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '<td>'
+                    +'<select id="zone_' + num + '" name="zone_' + num + '" class="col-md-12 form-control form-control-sm js-example-basic-single">'
+                        +'<option value="">SELECT ZONE</option>'
+                    +'</select>'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="region_code_' + num + '" name="region_code_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="region_name_' + num + '" name="region_name_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td style="text-align: center">'
+                    + '<span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('+ num +');">'
+                    +    '<i class="bi bi-x-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '</tr>');
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('/region/get_zone') }}",
+                    data: {
+                        "_token": "{{ csrf_token() }}"
+                    },
+                    success: function (data) {
+                        for(var i = 0; i < data.length; i++){
+                            $('#zone_'+num).append('<option value="'+data[i].z_id+'">'+data[i].z_name+'</option>')
+                        }
+                    }
+                });
+        $('.js-example-basic-single').select2();
+        $('#zone_'+num).focus();
+    }
+
+    /*REMOVE GENERATED ROW*/
+    function remove_item(num) {
+        $('#tr_' + num).remove();
+        var num = parseFloat($('#delete_item_count').val()) - 1;
+        $('#delete_item_count').val(num);
+        if (num == 0) {
+            gen_item();
+        }
+    }
+
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function region_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#zone_' + m).val() == "") {
+                valid = false;
+                $('#zone_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Zone'
+                });
+                break;
+            } else if ($('#region_code_' + m).val() == "") {
+                valid = false;
+                $('#region_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Region Code'
+                });
+                break;
+            } else if ($('#region_name_' + m).val() == "") {
+                valid = false;
+                $('#region_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Region Name'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (region_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+@endsection
+
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">ADD REGION</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('region/update',$region->rg_id)}}" method="post" name="edit_region_form" id="edit_region_form" onsubmit="edit_region_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">ZONE</th>
+                            <th style="text-align: center">REGION CODE</th>
+                            <th style="text-align: center">REGION NAME</th>
+                        </tr>
+                    </thead>
+                    <tbody id="zone">
+                        <tr id="tr_1">
+                            <td>
+                            <select id="zone_1" name="zone_1" class="col-md-12 form-control form-control-sm js-example-basic-single" disabled>
+                                <option value="">SELECT ZONE</option>
+                                @foreach ($zone as $z)
+                                <option value="{{$z->z_id}}" @if($z->z_id == $region->z_id) {{'selected'}} @endif>{{$z->z_name}}</option>
+                                @endforeach
+                            </select>
+                            </td>
+                            <td>
+                            <input type="text" id="region_code_1" name="region_code_1" value="{{$region->rg_code}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                            <input type="text" id="region_name_1" name="region_name_1" value="{{$region->rg_name}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'edit_region_form')">UPDATE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function edit_region_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#zone_' + m).val() == "") {
+                valid = false;
+                $('#zone_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Zone'
+                });
+                break;
+            } else if ($('#region_code_' + m).val() == "") {
+                valid = false;
+                $('#region_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Region Code'
+                });
+                break;
+            } else if ($('#region_name_' + m).val() == "") {
+                valid = false;
+                $('#region_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Region Name'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (edit_region_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+@endsection
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">ADD TERRITORY</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('area/save')}}" method="post" name="area_form" id="area_form" onsubmit="area_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-2 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-8 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">&nbsp</th>
+                            <th style="text-align: center">ZONE</th>
+                            <th style="text-align: center">REGION</th>
+                            <th style="text-align: center">TERRITORY CODE</th>
+                            <th style="text-align: center">TERRITORY NAME</th>
+                            <th style="text-align: center">&nbsp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="area">
+                        <tr id="tr_1">
+                            <td style="text-align: center">
+                                <span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">
+                                    <i class="bi bi-plus-square-fill"></i>
+                                </span>
+                            </td>
+                            <td>
+                                <select id="zone_1" name="zone_1" class="col-md-12 form-control form-control-sm js-example-basic-single" onchange="load_region(1)">
+                                    <option value="">SELECT ZONE</option>
+                                    @foreach ($zone as $z)
+                                    <option value="{{$z->z_id}}">{{$z->z_name}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <select id="region_1" name="region_1" class="col-md-12 form-control form-control-sm js-example-basic-single">
+                                    <option value="">SELECT REGION</option>
+                                    @foreach ($region as $rg)
+                                    <option value="{{$rg->rg_id}}">{{$rg->rg_name}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" id="area_code_1" name="area_code_1" class="col-md-12 form-control form-control-sm" autocomplete="off" readonly value="{{ $area_code_ }}"/>
+                            </td>
+                            <td>
+                            <input type="text" id="area_name_1" name="area_name_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td style="text-align: center">
+                                <span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('1');">
+                                    <i class="bi bi-x-square-fill"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'area_form')">SAVE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    
+    /* GENERATE NEW ROW */
+    function gen_item(){
+
+        var num = parseFloat($('#item_count').val()) + 1;
+        $('#item_count').val(num);
+        var area_code_gen_ = generateAreaCode(num);
+        var delete_count = parseFloat($('#delete_item_count').val()) + 1;
+        $('#delete_item_count').val(delete_count);
+        $('#area').append('<tr class="even pointer" id="tr_' + num + '">'
+                + '<td style="text-align: center">'
+                    + '<span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">'
+                    +     '<i class="bi bi-plus-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '<td>'
+                    +'<select id="zone_' + num + '" name="zone_' + num + '" onchange="load_region('+ num +')" class="col-md-12 form-control form-control-sm js-example-basic-single">'
+                        +'<option value="">SELECT ZONE</option>'
+                    +'</select>'
+                + '</td>'
+                + '<td>'
+                    +'<select id="region_' + num + '" name="region_' + num + '" class="col-md-12 form-control form-control-sm js-example-basic-single">'
+                        +'<option value="">SELECT REGION</option>'
+                    +'</select>'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="area_code_' + num + '" name="area_code_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" value="'+area_code_gen_+'" readonly/>'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="area_name_' + num + '" name="area_name_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td style="text-align: center">'
+                    + '<span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('+ num +');">'
+                    +    '<i class="bi bi-x-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '</tr>');
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('/area/get_zone') }}",
+                    data: {
+                        "_token": "{{ csrf_token() }}"
+                    },
+                    success: function (data) {
+                        for(var i = 0; i < data.length; i++){
+                            $('#zone_'+num).append('<option value="'+data[i].z_id+'">'+data[i].z_name+'</option>')
+                        }
+                    }
+                });
+
+                $.ajax({
+                    type: "POST",
+                    url: "{{ url('/area/get_region') }}",
+                    data: {
+                        "_token": "{{ csrf_token() }}"
+                    },
+                    success: function (data) {
+                        for(var i = 0; i < data.length; i++){
+                            $('#region_'+num).append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>')
+                        }
+                    }
+                });
+        $('.js-example-basic-single').select2();
+        $('#zone_'+num).focus();
+        $('#region_'+num).focus();
+    }
+
+    function generateAreaCode(num) {
+        
+        let first_row_area_code = $('#area_code_1').val();
+        const wordsArray = first_row_area_code.split("TE");
+        let numberPart = wordsArray[1];
+
+        let area_code_gen = parseInt(numberPart) + parseInt(num) - 1;
+        return 'TE'+area_code_gen;
+
+    }
+
+    function load_region(num) {
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_region') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                "z_id": $('#zone_'+num).val()
+            },
+            success: function (data) {
+                $('#region_'+num).empty();
+                $('#region_'+num).append('<option value="">SELECT REGION</option>');
+                for(var i = 0; i < data.length; i++) {
+                    $('#region_'+num).append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>');
+                }
+                // load_area();
+            }
+        });    
+    }
+
+    /*REMOVE GENERATED ROW*/
+    function remove_item(num) {
+        $('#tr_' + num).remove();
+        var num = parseFloat($('#delete_item_count').val()) - 1;
+        $('#delete_item_count').val(num);
+        if (num == 0) {
+            gen_item();
+        }
+    }
+
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function area_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#region_' + m).val() == "") {
+                valid = false;
+                $('#region_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Region'
+                });
+                break;
+            } else if ($('#zone_' + m).val() == "") {
+                valid = false;
+                $('#zone_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Region'
+                });
+                break;
+            } else if ($('#area_code_' + m).val() == "") {
+                valid = false;
+                $('#area_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Area Code'
+                });
+                break;
+            } else if ($('#area_name_' + m).val() == "") {
+                valid = false;
+                $('#area_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Area Name'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (area_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    
+</script>
+@endsection
+
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">EDIT TERRITORY</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('area/update',$area->ar_id)}}" method="post" name="area_edit_form" id="area_edit_form" onsubmit="area_edit_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">REGION</th>
+                            <th style="text-align: center">TERRITORY CODE</th>
+                            <th style="text-align: center">TERRITORY NAME</th>
+                        </tr>
+                    </thead>
+                    <tbody id="area">
+                        <tr id="tr_1">
+                            <td>
+                            <select id="region_1" name="region_1" class="col-md-12 form-control form-control-sm js-example-basic-single" disabled>
+                                <option value="">SELECT REGION</option>
+                                @foreach ($region as $rg)
+                                <option value="{{$rg->rg_id}}" @if($rg->rg_id == $area->rg_id) {{'selected'}} @endif>{{$rg->rg_name}}</option>
+                                @endforeach
+                            </select>
+                            </td>
+                            <td>
+                            <input type="text" id="area_code_1" name="area_code_1" value="{{$area->ar_code}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                            <input type="text" id="area_name_1" name="area_name_1" value="{{$area->ar_name}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'area_edit_form')">UPDATE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function area_edit_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#region_' + m).val() == "") {
+                valid = false;
+                $('#region_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Region'
+                });
+                break;
+            } else if ($('#area_code_' + m).val() == "") {
+                valid = false;
+                $('#area_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Area Code'
+                });
+                break;
+            } else if ($('#area_name_' + m).val() == "") {
+                valid = false;
+                $('#area_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Area Name'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (area_edit_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+@endsection
+
+
+@extends('layouts.app')
+
+@section('css')
+    @include('includes.datatables.css')
+@endsection
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">VIEW TERRITORY</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    @php
+    use App\Models\User\User;
+
+    if(isset(Auth::user()->u_tp_id)) {
+        $checkUserPermitedUrledit = User::checkUserPermitedUrl('TERRITORY EDIT');
+        $checkUserPermitedUrldelete = User::checkUserPermitedUrl('TERRITORY DELETE');
+    }
+    @endphp
+    <div class="ecommerce-widget">
+
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Zone</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control form-control-sm js-example-basic-single" id="z_id" name="z_id" onchange="load_region()">
+                                        <option value="">SELECT ZONE</option>
+                                        @foreach ($zone as $item)
+                                            <option value="{{$item->z_id}}">{{$item->z_name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>    
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">REGION</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control form-control-sm js-example-basic-single" id="rg_id" name="rg_id">
+                                        <option value="">SELECT REGION</option>
+                                        @foreach ($region as $item)
+                                            <option value="{{$item->rg_id}}">{{$item->rg_name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>    
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                            <label class="col-sm-3 col-form-label"></label>
+                            <div class="col-sm-9">
+                                
+                            </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                            <label class="col-sm-9 col-form-label"></label>
+                            <div class="col-sm-3">
+                                <button class="btn btn-primary btn-sm" type="button" onclick="search();">Search</button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="area_details" style="display: none;">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered first" id="area_table">
+                            <thead class="thead-custom">
+                                <tr>
+                                    <th style="text-align: center">REGION</th>
+                                    <th style="text-align: center">TERRITORY CODE</th>
+                                    <th style="text-align: center">TERRITORY NAME</th>
+                                    <th style="text-align: center">ADDED DATE</th>
+                                    <th style="text-align: center">EDIT</th>
+                                    <th style="text-align: center">STATUS</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {{-- <div class="row">
+            <div class="col-md-2 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-8 col-sm-12 col-xs-12 form-group text-center">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-striped table-bordered first">
+                            <thead class="thead-custom">
+                                <tr>
+                                    <th style="text-align: center">&nbsp</th>
+                                    <th style="text-align: center">REGION</th>
+                                    <th style="text-align: center">TERRITORY CODE</th>
+                                    <th style="text-align: center">TERRITORY NAME</th>
+                                    <th style="text-align: center">ADDED DATE</th>
+                                    <th style="text-align: center">EDIT</th>
+                                    <th style="text-align: center">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($area as $key=>$ar)
+                                @php $key = $key+1; @endphp
+                                <tr>
+                                    <td>{{$key}}</td>
+                                    <td>{{$ar->getRegion()}}</td>
+                                    <td>{{$ar->ar_code}}</td>
+                                    <td>{{$ar->ar_name}}</td>
+                                    <td>{{$ar->created_at}}</td>
+                                    <td>
+                                        @if (!$ar->trashed())
+                                        @if ($checkUserPermitedUrledit)
+                                        <div style="text-align:center">
+                                            <a href="{{url('area/edit', $ar->ar_id)}}" target="_blank"><i
+                                                    style="color:#0998b0;font-size:18px"
+                                                    class="fas fa-pencil-alt fa-lg"></i></a>
+                                        </div>
+                                        @else
+                                        <div style="text-align:center">
+                                            <a href="javascript:void(0)"><i style="color:thistle;font-size:18px"
+                                                    class="fas fa-pencil-alt fa-lg"></i></a>
+                                        </div>
+                                        @endif
+
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if (!$ar->trashed())
+                                        @php $current_status = 1; @endphp
+                                        @if ($checkUserPermitedUrldelete)
+                                        <div style="text-align:center">
+                                            <a href="" onclick="change_status('{{$current_status}}','{{$ar->ar_id}}')"
+                                                class="btn btn-success btn-sm">Enable</a>
+                                        </div>
+                                        @else
+                                        <div style="text-align:center">
+                                            <button disabled="disabled" class="btn btn-success btn-sm">Enable</button>
+                                        </div>
+                                        @endif
+
+                                        @else
+                                        @php $current_status = 0; @endphp
+                                        @if ($checkUserPermitedUrldelete)
+                                        <div style="text-align:center">
+                                            <a href="" onclick="change_status('{{$current_status}}','{{$ar->ar_id}}')"
+                                                class="btn btn-danger btn-sm">Disable</a>
+                                        </div>
+                                        @else
+                                        <div style="text-align:center">
+                                            <button disabled="disabled" class="btn btn-danger btn-sm">Disable</button>
+                                        </div>
+                                        @endif
+
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div> --}}
+    </div>
+</div>
+@endsection
+@section('js')
+
+@include('includes.datatables.js')
+
+<script type="text/javascript"> 
+
+    function search(){
+        $('#area_details').show();
+        $('#area_table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: {
+                url: "{{ url('/area/search') }}",
+                data: function (d) {
+                    d.z_id = $('#z_id').val();
+                    d.rg_id = $('#rg_id').val();
+                }
+            },
+            columns: [
+                { data: 'rg_name', name: 'rg_name' },
+                { data: 'ar_code', name: 'ar_code', className: 'text-center'},
+                { data: 'ar_name', name: 'ar_name', className: 'text-left' },
+                { data: 'created_at', name: 'created_at', className: 'text-left' },
+                { data: 'edit', name: 'edit', className: 'text-center' },
+                { data: 'status', name: 'status', className: 'text-center' }
+            ],
+            order: [
+                0, 'desc'
+            ],
+            
+        });
+    }
+
+    function change_status(status,id){
+        event.preventDefault();
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want change status of this record',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'confirm',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('/area/status') }}",
+                            data: {
+                                id: id,
+                                status: status,
+                                "_token": "{{ csrf_token() }}"
+                            },
+                            success: function (data) {
+                                window.location.href = "{{ route('area_view')}}";
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: 'cancel',
+                    btnClass: 'btn-red',
+                    action: function () {
+
+                    }
+                }
+            }
+        });
+    }
+
+    // load regions
+    function load_region() {
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_region') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                "z_id": $('#z_id').val()
+            },
+            success: function (data) {
+                $('#rg_id').empty();
+                $('#rg_id').append('<option value="">SELECT REGION</option>');
+                for(var i = 0; i < data.length; i++) {
+                    $('#rg_id').append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>');
+                }
+                load_area();
+            }
+        });    
+    }
+</script>
+@endsection
+
+
+@extends('layouts.app')
+
+@section('css')
+    @include('includes.datatables.css')
+@endsection
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h3 class="pageheader-title">TERRITORY TRANSFER</h3>
+                <div class="page-breadcrumb">
+                    <ol class="breadcrumb">
+
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('area/transfer/save')}}" method="POST" name="transfer_form" id="transfer_form"> 
+            @csrf
+            <div class="row">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12">
+                    <div class="card" style="height: 90%;">
+                        <div class="card-header">
+                            <h5 style="text-align: center; font-size: 20px; color: #c9211e; margin-top: 10px;">EXISTING</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">ZONE <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="old_z_id" name="old_z_id" onchange="load_region(this.id)">
+                                                <option value="">SELECT ZONE</option>
+                                                @foreach ($zone as $z)
+                                                <option value="{{$z->z_id}}">{{$z->z_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">REGION <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="old_rg_id" name="old_rg_id" onchange="load_area(this.id)">
+                                                <option value="">SELECT REGION</option>
+                                                @foreach ($region as $rg)
+                                                <option value="{{$rg->rg_id}}">{{$rg->rg_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {{-- <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">TERRITORY</label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="old_ar_id" name="old_ar_id">
+                                            <option value="">SELECT TERRITORY</option>
+                                            @foreach ($area as $ar)
+                                            <option value="{{$ar->ar_id}}">{{$ar->ar_name}}</option>
+                                            @endforeach
+                                        </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div> --}}
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <div class="col-12 text-right">
+                                            <button class="btn btn-primary btn-sm" type="button" onclick="search();">Search</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12">
+                    <div class="card" style="height: 90%;">
+                        <div class="card-header">
+                            <h5 style="text-align: center; font-size: 20px; color: #c9211e; margin-top: 10px;">NEW</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">ZONE <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="new_z_id" name="new_z_id" onchange="load_region(this.id)">
+                                                <option value="">SELECT ZONE</option>
+                                                @foreach ($zone as $z)
+                                                <option value="{{$z->z_id}}">{{$z->z_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">REGION <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="new_rg_id" name="new_rg_id">
+                                                <option value="">SELECT REGION</option>
+                                                @foreach ($region as $rg)
+                                                <option value="{{$rg->rg_id}}">{{$rg->rg_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="transfer_details" style="display: none;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered first" id="transfer_table">
+                                <thead class="thead-custom">
+                                    <tr>
+                                        <th style="text-align: center">
+                                            <input style="vertical-align: middle;" type="checkbox" id="select-all" name="select-all"/>
+                                        </th>
+                                        <th style="text-align: center">TERRITORY NAME</th>
+                                        <th style="text-align: center">TERRITORY CODE</th>                                    
+                                        <th style="text-align: center">ADDED DATE</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        <div class="row justify-content-center">
+                            <div class="col-md-4 col-12 mb-1 " style="text-align: center">
+                                <button id="btn_transfer" class="btn btn-primary btn-sm mt-4 mb-1" onclick="insert_transfer(event,'btn_transfer','transfer_form')">TRANSFER</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@endsection
+@section('js')
+
+@include('includes.datatables.js')
+
+<script type="text/javascript">
+    function load_region(id) {
+
+        var selected_id =id.split("_");
+        var prefix = selected_id[0];
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_region') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                'z_id': $('#'+prefix+'_z_id').val()
+            },
+            success: function (data) {
+                // console.log(data);
+                $('#'+prefix+'_rg_id').empty();
+                $('#'+prefix+'_rg_id').append('<option value="">SELECT REGION</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#'+prefix+'_rg_id').append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>');
+                }
+                load_area(id)
+            }
+        });
+    }
+
+    function load_area(id){
+
+        var selected_id =id.split("_");
+        var prefix = selected_id[0];
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_area') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                'z_id': $('#'+prefix+'_z_id').val(),
+                'rg_id': $('#'+prefix+'_rg_id').val(),
+            },
+            success: function (data) {
+                console.log(data);
+                $('#'+prefix+'_ar_id').empty();
+                $('#'+prefix+'_ar_id').append('<option value="">SELECT TERRITORY</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#'+prefix+'_ar_id').append('<option value="'+data[i].ar_id+'">'+data[i].ar_name+'</option>');
+                }
+            }
+        });
+    }
+
+    function search() {
+
+        if($('#old_z_id').val() == "") {
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please select a existing Zone!'
+            });
+        }
+        else if($('#old_rg_id').val() == "") {
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please select a existing Region!'
+            });
+        }
+        else {
+            $('#transfer_details').show();
+            $('#transfer_table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                paging: false,
+                aaSorting: false,
+                searching: false,
+                ajax: {
+                    url: "{{ url('/area/transfer/search') }}",
+                    data: function (d) {
+                        d.z_id = $('#old_z_id').val();
+                        d.rg_id = $('#old_rg_id').val();
+                        d.ar_id = $('#old_ar_id').val();
+                    }
+                },
+                columns: [
+                    { data: 'checkbox', name: 'checkbox', searchable:false, orderable:false },
+                    { data: 'ar_name', name: 'ar_name' },
+                    { data: 'ar_code', name: 'ar_code', className: 'text-center' },
+                    { data: 'added_date', name: 'added_date', className: 'text-center' },
+                ],
+                order: [ 1, 'desc' ],
+                
+            });
+        }
+
+    }
+
+    $("#select-all").change(function(){ 
+        var status = this.checked;
+        $('.single-checkbox').each(function(){
+            this.checked = status;
+        });
+    });
+
+    function select_single_checkbox(event) {
+        // console.log("single check");
+        if (!$(this).prop("checked")) {
+            $("#select-all").prop("checked", false);
+        }
+    };
+
+    function validate_transfer() {
+        var valid = true;
+        var selcted_cb = $("input[type=checkbox].single-checkbox:checked").length;
+        // console.log(selcted_cb);
+        if(selcted_cb < 1) {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Check at least one Terrirory!'
+            });
+        }
+        else if($('#new_z_id').val() == "") {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please Select a New Zone!'
+            });
+        }
+        else if($('#new_rg_id').val() == "") {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please Select a New Region!'
+            });
+        }
+        else if($('#new_rg_id').val() == $('#old_rg_id').val()) {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Select different Regions to transfer!'
+            });
+        }
+        return valid;
+    }
+
+    function insert_transfer(e,button_id,form_id) {
+        e.preventDefault();
+        if(validate_transfer()) {
+            $("#"+button_id).prop("disabled",true);
+            document.forms[form_id].submit();
+        }
+    }
+</script>
+@endsection
+
+
+
+//route
+
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">ADD ROUTE</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('route/save')}}" method="post" name="route_form" id="route_form" onsubmit="route_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-2 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-8 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">&nbsp</th>
+                            <th style="text-align: center">ZONE</th>
+                            <th style="text-align: center">REGION</th>
+                            <th style="text-align: center">TERRITORY</th>
+                            <th style="text-align: center">ROUTE CODE</th>
+                            <th style="text-align: center">ROUTE NAME</th>
+                            <th style="text-align: center">ROUTE FREQUENCY</th>
+                            <th style="text-align: center">&nbsp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="route">
+                        <tr id="tr_1">
+                            <td style="text-align: center">
+                                <span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">
+                                    <i class="bi bi-plus-square-fill"></i>
+                                </span>
+                            </td>
+                            <td>
+                                <select id="zone_1" name="zone_1" class="col-md-12 form-control form-control-sm js-example-basic-single" onchange="load_region(1)">
+                                    <option value="">SELECT ZONE</option>
+                                    @foreach ($zone as $z)
+                                    <option value="{{$z->z_id}}">{{$z->z_name}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <select id="region_1" name="region_1" class="col-md-12 form-control form-control-sm js-example-basic-single" onchange="load_area(1)">
+                                    <option value="">SELECT REGION</option>
+                                    @foreach ($region as $rg)
+                                    <option value="{{$rg->rg_id}}">{{$rg->rg_name}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <select id="area_1" name="area_1" class="col-md-12 form-control form-control-sm js-example-basic-single">
+                                    <option value="">SELECT TERRITORY</option>
+                                    @foreach ($area as $ar)
+                                    <option value="{{$ar->ar_id}}">{{$ar->ar_name}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                                <input type="text" id="route_code_1" name="route_code_1" class="col-md-12 form-control form-control-sm" autocomplete="off" readonly value="{{ $route_code_ }}"/>
+                            </td>
+                            <td>
+                                <input type="text" id="route_name_1" name="route_name_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                                <input type="number" id="route_frequency_1" min="0" style="text-align: right" onkeyup="change_qty('1')" name="route_frequency_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td style="text-align: center">
+                                <span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('1');">
+                                    <i class="bi bi-x-square-fill"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'route_form')">SAVE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    /* GENERATE NEW ROW */
+    function gen_item(){
+        var num = parseFloat($('#item_count').val()) + 1;
+        $('#item_count').val(num);
+        var route_code_gen_ = generateRouteCode(num);
+        var delete_count = parseFloat($('#delete_item_count').val()) + 1;
+        $('#delete_item_count').val(delete_count);
+        $('#route').append('<tr class="even pointer" id="tr_' + num + '">'
+                + '<td style="text-align: center">'
+                    + '<span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">'
+                    +     '<i class="bi bi-plus-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '<td>'
+                    +'<select id="zone_' + num + '" name="zone_' + num + '" class="col-md-12 form-control form-control-sm js-example-basic-single" onchange="load_region('+num+')">'
+                        +'<option value="">SELECT ZONE</option>'
+                    +'</select>'
+                + '</td>'
+                + '<td>'
+                    +'<select id="region_' + num + '" name="region_' + num + '" class="col-md-12 form-control form-control-sm js-example-basic-single" onchange="load_area('+num+')">'
+                        +'<option value="">SELECT REGION</option>'
+                    +'</select>'
+                + '</td>'
+                + '<td>'
+                    +'<select id="area_' + num + '" name="area_' + num + '" class="col-md-12 form-control form-control-sm js-example-basic-single">'
+                        +'<option value="">SELECT TERRITORY</option>'
+                    +'</select>'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="route_code_' + num + '" name="route_code_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" value="'+ route_code_gen_ +'" readonly/>'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="route_name_' + num + '" name="route_name_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td>'
+                    +'<input type="number" min="0" style="text-align: right" onkeyup="change_qty('+ num +')" id="route_frequency_' + num + '" name="route_frequency_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td style="text-align: center">'
+                    + '<span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('+ num +');">'
+                    +    '<i class="bi bi-x-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '</tr>');
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/route/get_zone') }}",
+            data: {
+                "_token": "{{ csrf_token() }}"
+            },
+            success: function (data) {
+                for(var i = 0; i < data.length; i++){
+                    $('#zone_'+num).append('<option value="'+data[i].z_id+'">'+data[i].z_name+'</option>')
+                }
+            }
+        });
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/route/get_region') }}",
+            data: {
+                "_token": "{{ csrf_token() }}"
+            },
+            success: function (data) {
+                for(var i = 0; i < data.length; i++){
+                    $('#region_'+num).append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>')
+                }
+            }
+        });
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/route/get_area') }}",
+            data: {
+                "_token": "{{ csrf_token() }}"
+            },
+            success: function (data) {
+                for(var i = 0; i < data.length; i++){
+                    $('#area_'+num).append('<option value="'+data[i].ar_id+'">'+data[i].ar_name+'</option>')
+                }
+            }
+        });
+
+        $('.js-example-basic-single').select2();
+        $('#zone_'+num).focus();
+        $('#region_'+num).focus();
+        $('#area_'+num).focus();
+    }
+
+    function generateRouteCode(num) {
+        
+        // let first_row_route_code = $('#route_code_1').val();
+        // const wordsArray = first_row_route_code.split("R");
+        // let numberPart = wordsArray[1];
+
+        // let route_code_gen = parseInt(numberPart) + parseInt(num) - 1;
+        // return 'R'+route_code_gen;
+
+        const zeroPad = (num, places) => String(num).padStart(places, '0');
+        
+        let first_row_route_code = $('#route_code_1').val();
+        const wordsArray = first_row_route_code.split("RO");
+        let numberPart = wordsArray[1];
+        let route_code_gen = parseInt(numberPart) + parseInt(num) - 1;
+        let route_code_code_gen_ = zeroPad(route_code_gen, 5)
+        return 'RO'+route_code_code_gen_;
+
+
+    }
+
+    function change_qty(num){
+        if($('#route_frequency_'+num).val() < '0'){
+            $('#route_frequency_' + num).focus();
+            $('#route_frequency_' + num).val(0);
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Please enter valid frequency day count'
+                });
+        }
+    }
+
+    /*REMOVE GENERATED ROW*/
+    function remove_item(num) {
+        $('#tr_' + num).remove();
+        var num = parseFloat($('#delete_item_count').val()) - 1;
+        $('#delete_item_count').val(num);
+        if (num == 0) {
+            gen_item();
+        }
+    }
+
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function route_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#area_' + m).val() == "") {
+                valid = false;
+                $('#area_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Territory'
+                });
+                break;
+            } else if ($('#route_code_' + m).val() == "") {
+                valid = false;
+                $('#route_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Route Code'
+                });
+                break;
+            } else if ($('#route_name_' + m).val() == "") {
+                valid = false;
+                $('#route_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Route Name'
+                });
+                break;
+            } else if ($('#route_frequency_' + m).val() == "") {
+                valid = false;
+                $('#route_frequency_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Route Frequency'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (route_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    // load regions
+    function load_region(num) {
+      
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_region') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                "z_id": $('#zone_'+num).val()
+            },
+            success: function (data) {
+                $('#region_'+num).empty();
+                $('#region_'+num).append('<option value="">SELECT REGION</option>');
+                for(var i = 0; i < data.length; i++) {
+                    $('#region_'+num).append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>');
+                }
+                load_area(num);
+            }
+        });    
+    }
+
+    // load area
+    function load_area(num) {
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_area') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                "z_id": $('#zone_'+num).val(),
+                "rg_id": $('#region_'+num).val(),
+            },
+            success: function (data) {
+                $('#area_'+num).empty();
+                $('#area_'+num).append('<option value="">SELECT TERRITORY</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#area_'+num).append('<option value="'+data[i].ar_id+'">'+data[i].ar_name+'</option>');
+                }
+            }
+        });
+    }
+</script>
+@endsection
+
+
+
+
+@extends('layouts.app')
+
+@section('css')
+    @include('includes.datatables.css')
+@endsection
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">VIEW ROUTE</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    @php
+    use App\Models\User\User;
+
+    if(isset(Auth::user()->u_tp_id)) {
+        $checkUserPermitedUrledit = User::checkUserPermitedUrl('ROUTE EDIT');
+        $checkUserPermitedUrldelete = User::checkUserPermitedUrl('ROUTE DELETE');
+    }
+    @endphp
+    <div class="ecommerce-widget">
+
+        {{-- filter section start --}}
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">Zone</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control form-control-sm js-example-basic-single" id="z_id" name="z_id" onchange="load_region()">
+                                        <option value="">SELECT ZONE</option>
+                                        @foreach ($zone as $item)
+                                            <option value="{{$item->z_id}}">{{$item->z_name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>    
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">REGION</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control form-control-sm js-example-basic-single" id="rg_id" name="rg_id" onchange="load_area()">
+                                        <option value="">SELECT REGION</option>
+                                        @foreach ($region as $item)
+                                            <option value="{{$item->rg_id}}">{{$item->rg_name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>    
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group row">
+                            <label class="col-sm-3 col-form-label">TERRITORY</label>
+                                <div class="col-sm-9">
+                                    <select class="form-control form-control-sm js-example-basic-single" id="ar_id" name="ar_id" onchange="load_route()">
+                                        <option value="">SELECT TERRITORY</option>
+                                        @foreach ($area as $item)
+                                            <option value="{{$item->ar_id}}">{{$item->ar_name}}</option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>    
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                        <label class="col-sm-3 col-form-label"></label>
+                        <div class="col-sm-9">
+                            
+                        </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group row">
+                        <label class="col-sm-9 col-form-label"></label>
+                        <div class="col-sm-3">
+                            <button class="btn btn-primary btn-sm" type="button" onclick="search();">Search</button>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+        {{-- filter section end --}}
+
+        {{-- data table section start --}}
+        <div id="route_details" style="display: none;">
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered first" id="route_table">
+                            <thead class="thead-custom">
+                                <tr>
+                                    <th style="text-align: center">ZONE</th>
+                                    <th style="text-align: center">REGION</th>
+                                    <th style="text-align: center">TERRITORY</th>
+                                    <th style="text-align: center">ROUTE CODE</th>
+                                    <th style="text-align: center">ROUTE NAME</th>
+                                    <th style="text-align: center">ROUTE FREQUENCY</th>
+                                    <th style="text-align: center">ADDED DATE</th>
+                                    <th style="text-align: center">EDIT</th>
+                                    <th style="text-align: center">STATUS</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{-- data table section end --}}
+
+        {{-- <div class="row">
+            <div class="col-md-1 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-10 col-sm-12 col-xs-12 form-group text-center">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-striped table-bordered first">
+                            <thead class="thead-custom">
+                                <tr>
+                                    <th style="text-align: center">&nbsp</th>
+                                    <th style="text-align: center">ZONE</th>
+                                    <th style="text-align: center">REGION</th>
+                                    <th style="text-align: center">TERRITORY</th>
+                                    <th style="text-align: center">ROUTE CODE</th>
+                                    <th style="text-align: center">ROUTE NAME</th>
+                                    <th style="text-align: center">ROUTE FREQUENCY</th>
+                                    <th style="text-align: center">ADDED DATE</th>
+                                    <th style="text-align: center">EDIT</th>
+                                    <th style="text-align: center">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($route as $key=>$r)
+                                @php $key = $key+1; @endphp
+                                <tr>
+                                    <td>{{$key}}</td>
+                                    <td>{{$r->getZone()}}</td>
+                                    <td>{{$r->getRegion()}}</td>
+                                    <td>{{$r->getArea()}}</td>
+                                    <td>{{$r->r_code}}</td>
+                                    <td>{{$r->r_name}}</td>
+                                    <td>{{$r->r_frequency}}</td>
+                                    <td>{{$r->created_at}}</td>
+                                    <td>
+                                        @if (!$r->trashed())
+                                        <div style="text-align:center">
+
+                                            @if ($checkUserPermitedUrledit)
+                                            <a href="{{url('route/edit', $r->r_id)}}" target="_blank"><i
+                                                    style="color:#0998b0;font-size:18px"
+                                                    class="fas fa-pencil-alt fa-lg"></i></a>
+                                            @else
+                                            <a href="javascript:void(0);"><i style="color:gray;font-size:18px"
+                                                    class="fas fa-pencil-alt fa-lg"></i></a>
+                                            @endif
+                                        </div>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if (!$r->trashed())
+                                        @php $current_status = 1; @endphp
+                                        @if ($checkUserPermitedUrldelete)
+                                        <div style="text-align:center">
+                                            <a href="" onclick="change_status('{{$current_status}}','{{$r->r_id}}')"
+                                                class="btn btn-success btn-sm">Enable</a>
+                                        </div>
+                                        @else
+                                        <div style="text-align:center">
+                                            <button disabled="disabled" class="btn btn-success btn-sm">Enable</button>
+                                        </div>
+                                        @endif
+
+                                        @else
+                                        @php $current_status = 0; @endphp
+                                        <div style="text-align:center">
+                                            @if ($checkUserPermitedUrldelete)
+                                            <a href="" onclick="change_status('{{$current_status}}','{{$r->r_id}}')"
+                                                class="btn btn-danger btn-sm">Disable</a>
+                                            @else
+                                            <button disabled="disabled" class="btn btn-danger btn-sm">Disable</button>
+                                            @endif
+                                        </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div> --}}
+    </div>
+</div>
+@endsection
+@section('js')
+
+@include('includes.datatables.js')
+
+<script type="text/javascript">
+
+    function change_status(status,id){
+        event.preventDefault();
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want change status of this record',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'confirm',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('/route/status') }}",
+                            data: {
+                                id: id,
+                                status: status,
+                                "_token": "{{ csrf_token() }}"
+                            },
+                            success: function (data) {
+                                window.location.href = "{{ route('route_view')}}";
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: 'cancel',
+                    btnClass: 'btn-red',
+                    action: function () {
+
+                    }
+                }
+            }
+        });
+    }
+
+    // load regions
+    function load_region() {
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_region') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                "z_id": $('#z_id').val()
+            },
+            success: function (data) {
+                $('#rg_id').empty();
+                $('#rg_id').append('<option value="">SELECT REGION</option>');
+                for(var i = 0; i < data.length; i++) {
+                    $('#rg_id').append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>');
+                }
+                load_area();
+            }
+        });    
+    }
+
+    // load_area
+    function load_area() {
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_area') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                "z_id": $('#z_id').val(),
+                "rg_id": $('#rg_id').val(),
+            },
+            success: function (data) {
+                $('#ar_id').empty();
+                $('#ar_id').append('<option value="">SELECT TERRITORY</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#ar_id').append('<option value="'+data[i].ar_id+'">'+data[i].ar_name+'</option>');
+                }
+                load_route();
+            }
+        });
+    }
+
+    // load route
+    function load_route() {
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_route') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                'z_id': $('#z_id').val(),
+                'rg_id': $('#rg_id').val(),
+                'ar_id': $('#ar_id').val(),
+            },
+            success: function (data) {
+                $('#r_id').empty();
+                $('#r_id').append('<option value="">SELECT ROUTE</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#r_id').append('<option value="'+data[i].r_id+'">'+data[i].r_name+'</option>');
+                }
+            }
+        })    
+    }
+
+    function search(){
+        $('#route_details').show();
+        $('#route_table').DataTable({
+            processing: true,
+            serverSide: true,
+            destroy: true,
+            ajax: {
+                url: "{{ url('/route/search') }}",
+                data: function (d) {
+                    d.z_id = $('#z_id').val();
+                    d.rg_id = $('#rg_id').val();
+                    d.ar_id = $('#ar_id').val();
+                }
+            },
+            columns: [
+                { data: 'z_name', name: 'z_name' },
+                { data: 'rg_name', name: 'rg_name' },
+                { data: 'ar_name', name: 'ar_name' },
+                { data: 'r_code', name: 'r_code' },
+                { data: 'r_name', name: 'r_name' },
+                { data: 'r_frequency', name: 'r_frequency', className: 'text-left' },
+                { data: 'created_at', name: 'created_at', className: 'text-left' },
+                { data: 'edit', name: 'edit', className: 'text-center' },
+                { data: 'status', name: 'status', className: 'text-center' }
+            ],
+            order: [
+                0, 'desc'
+            ],
+            
+        });
+    }
+</script>
+@endsection
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">EDIT ROUTE</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('route/update',$route->r_id)}}" method="post" name="route_edit_form" id="route_edit_form" onsubmit="route_edit_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">TERRITORY</th>
+                            <th style="text-align: center">ROUTE CODE</th>
+                            <th style="text-align: center">ROUTE NAME</th>
+                            <th style="text-align: center">ROUTE FREQUENCY</th>
+                        </tr>
+                    </thead>
+                    <tbody id="route">
+                        <tr id="tr_1">
+                            <td>
+                                <select id="area_1" name="area_1" class="col-md-12 form-control form-control-sm js-example-basic-single" disabled>
+                                    <option value="">SELECT TERRITORY</option>
+                                    @foreach ($area as $ar)
+                                    <option value="{{$ar->ar_id}}" @if($ar->ar_id == $route->ar_id) {{'selected'}} @endif>{{$ar->ar_name}}</option>
+                                    @endforeach
+                                </select>
+                            </td>
+                            <td>
+                            <input type="text" id="route_code_1" name="route_code_1" value="{{$route->r_code}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                            <input type="text" id="route_name_1" name="route_name_1" value="{{$route->r_name}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                            <input type="number" id="route_frequency_1" min="0" style="text-align: right" value="{{$route->r_frequency}}" onkeyup="change_qty('1')" name="route_frequency_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'route_edit_form')">SAVE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    function change_qty(num){
+        if($('#route_frequency_'+num).val() < '0'){
+            $('#route_frequency_' + num).focus();
+            $('#route_frequency_' + num).val(0);
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Please enter valid frequency day count'
+                });
+        }
+    }
+
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function route_edit_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#area_' + m).val() == "") {
+                valid = false;
+                $('#area_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Select Territory'
+                });
+                break;
+            } else if ($('#route_code_' + m).val() == "") {
+                valid = false;
+                $('#route_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Route Code'
+                });
+                break;
+            } else if ($('#route_name_' + m).val() == "") {
+                valid = false;
+                $('#route_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Route Name'
+                });
+                break;
+            } else if ($('#route_frequency_' + m).val() == "") {
+                valid = false;
+                $('#route_frequency_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Route Frequency'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (route_edit_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+@endsection
+
+
+@extends('layouts.app')
+
+@section('css')
+    @include('includes.datatables.css')
+@endsection
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h3 class="pageheader-title">ROUTE TRANSFER</h3>
+                <div class="page-breadcrumb">
+                    <ol class="breadcrumb">
+
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('route/transfer/save')}}" method="POST" name="transfer_form" id="transfer_form"> 
+            @csrf
+            <div class="row">
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12">
+                    <div class="card" style="height: 90%;">
+                        <div class="card-header">
+                            <h5 style="text-align: center; font-size: 20px; color: #c9211e; margin-top: 10px;">EXISTING</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">ZONE <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="old_z_id" name="old_z_id" onchange="load_region(this.id)">
+                                                <option value="">SELECT ZONE</option>
+                                                @foreach ($zone as $z)
+                                                <option value="{{$z->z_id}}">{{$z->z_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">REGION <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="old_rg_id" name="old_rg_id" onchange="load_area(this.id)">
+                                                <option value="">SELECT REGION</option>
+                                                @foreach ($region as $rg)
+                                                <option value="{{$rg->rg_id}}">{{$rg->rg_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">TERRITORY <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="old_ar_id" name="old_ar_id" onchange="load_route(this.id)">
+                                                <option value="">SELECT TERRITORY</option>
+                                                @foreach ($area as $ar)
+                                                <option value="{{$ar->ar_id}}">{{$ar->ar_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center" style="display: none;">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">ROUTE</label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="old_r_id" name="old_r_id">
+                                                <option value="">SELECT ROUTE</option>
+                                                @foreach ($route as $r)
+                                                <option value="{{$r->r_id}}">{{$r->r_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <div class="col-12 text-right">
+                                            <button class="btn btn-primary btn-sm" type="button" onclick="search();">Search</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-xl-6 col-lg-6 col-md-6 col-sm-12 col-12">
+                    <div class="card" style="height: 90%;">
+                        <div class="card-header">
+                            <h5 style="text-align: center; font-size: 20px; color: #c9211e; margin-top: 10px;">NEW</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">ZONE <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="new_z_id" name="new_z_id" onchange="load_region(this.id)">
+                                                <option value="">SELECT ZONE</option>
+                                                @foreach ($zone as $z)
+                                                <option value="{{$z->z_id}}">{{$z->z_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">REGION <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="new_rg_id" name="new_rg_id" onchange="load_area(this.id)">
+                                                <option value="">SELECT REGION</option>
+                                                @foreach ($region as $rg)
+                                                <option value="{{$rg->rg_id}}">{{$rg->rg_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row justify-content-center">
+                                <div class="col-7">
+                                    <div class="form-group row">
+                                        <label class="col-sm-3 col-form-label">TERRITORY <span class="mandatory-field">*</span></label>
+                                        <div class="col-sm-9">
+                                            <select class="form-control form-control-sm js-example-basic-single" id="new_ar_id" name="new_ar_id">
+                                                <option value="">SELECT TERRITORY</option>
+                                                @foreach ($area as $ar)
+                                                <option value="{{$ar->ar_id}}">{{$ar->ar_name}}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="transfer_details" style="display: none;">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-bordered first" id="transfer_table">
+                                <thead class="thead-custom">
+                                    <tr>
+                                        <th style="text-align: center">
+                                            <input style="vertical-align: middle;" type="checkbox" id="select-all" name="select-all"/>
+                                        </th>
+                                        <th style="text-align: center">ROUTE NAME</th>
+                                        <th style="text-align: center">ROUTE CODE</th>                                    
+                                        <th style="text-align: center">ADDED DATE</th>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+
+                        <div class="row justify-content-center">
+                            <div class="col-md-4 col-12 mb-1 " style="text-align: center">
+                                <button id="btn_transfer" class="btn btn-primary btn-sm mt-4 mb-1" onclick="insert_transfer(event,'btn_transfer','transfer_form')">TRANSFER</button>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@endsection
+@section('js')
+
+@include('includes.datatables.js')
+
+<script type="text/javascript">
+    function load_region(id) {
+
+        var selected_id =id.split("_");
+        var prefix = selected_id[0];
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_region') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                'z_id': $('#'+prefix+'_z_id').val()
+            },
+            success: function (data) {
+                // console.log(data);
+                $('#'+prefix+'_rg_id').empty();
+                $('#'+prefix+'_rg_id').append('<option value="">SELECT REGION</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#'+prefix+'_rg_id').append('<option value="'+data[i].rg_id+'">'+data[i].rg_name+'</option>');
+                }
+                load_area(id)
+            }
+        });
+    }
+
+    function load_area(id){
+
+        var selected_id =id.split("_");
+        var prefix = selected_id[0];
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_area') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                'z_id': $('#'+prefix+'_z_id').val(),
+                'rg_id': $('#'+prefix+'_rg_id').val(),
+            },
+            success: function (data) {
+                console.log(data);
+                $('#'+prefix+'_ar_id').empty();
+                $('#'+prefix+'_ar_id').append('<option value="">SELECT TERRITORY</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#'+prefix+'_ar_id').append('<option value="'+data[i].ar_id+'">'+data[i].ar_name+'</option>');
+                }
+                load_route(id);
+            }
+        });
+    }
+
+    function load_route(id) {
+
+        var selected_id =id.split("_");
+        var prefix = selected_id[0];
+
+        $.ajax({
+            type: "POST",
+            url: "{{ url('/common/load_route') }}",
+            data: {
+                "_token": "{{ csrf_token() }}",
+                'z_id': $('#'+prefix+'_z_id').val(),
+                'rg_id': $('#'+prefix+'_rg_id').val(),
+                'ar_id': $('#'+prefix+'_ar_id').val(),
+            },
+            success: function (data) {
+                console.log(data);
+                $('#'+prefix+'_r_id').empty();
+                $('#'+prefix+'_r_id').append('<option value="">SELECT ROUTE</option>');
+                for(var i = 0; i < data.length; i++){
+                    $('#'+prefix+'_r_id').append('<option value="'+data[i].r_id+'">'+data[i].r_name+'</option>');
+                }
+            }
+        });
+    }
+
+    function search() {
+
+        if($('#old_z_id').val() == "") {
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please select a existing Zone!'
+            });
+        }
+        else if($('#old_rg_id').val() == "") {
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please select a existing Region!'
+            });
+        }
+        else if($('#old_ar_id').val() == "") {
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please select a existing Territory!'
+            });
+        }
+        else {
+            $('#transfer_details').show();
+            $('#transfer_table').DataTable({
+                processing: true,
+                serverSide: true,
+                destroy: true,
+                paging: false,
+                aaSorting: false,
+                searching: false,
+                ajax: {
+                    url: "{{ url('/route/transfer/search') }}",
+                    data: function (d) {
+                        d.z_id = $('#old_z_id').val();
+                        d.rg_id = $('#old_rg_id').val();
+                        d.ar_id = $('#old_ar_id').val();
+                        d.r_id = $('#old_r_id').val();
+                    }
+                },
+                columns: [
+                    { data: 'checkbox', name: 'checkbox', searchable:false, orderable:false },
+                    { data: 'r_name', name: 'r_name' },
+                    { data: 'r_code', name: 'r_code', className: 'text-center' },
+                    { data: 'added_date', name: 'added_date', className: 'text-center' },
+                ],
+                order: [ 1, 'desc' ],
+                
+            });
+        }
+
+    }
+
+    $("#select-all").change(function(){ 
+        var status = this.checked;
+        $('.single-checkbox').each(function(){
+            this.checked = status;
+        });
+    });
+
+    function select_single_checkbox(event) {
+        // console.log("single check");
+        if (!$(this).prop("checked")) {
+            $("#select-all").prop("checked", false);
+        }
+    };
+
+    function validate_transfer() {
+        var valid = true;
+        var selcted_cb = $("input[type=checkbox].single-checkbox:checked").length;
+        // console.log(selcted_cb);
+        if(selcted_cb < 1) {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Check at least one Route!'
+            });
+        }
+        else if($('#new_z_id').val() == "") {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please Select a New Zone!'
+            });
+        }
+        else if($('#new_rg_id').val() == "") {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please Select a New Region!'
+            });
+        }
+        else if($('#new_ar_id').val() == "") {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Please Select a New Territoty!'
+            });
+        }
+        else if($('#new_ar_id').val() == $('#old_ar_id').val()) {
+            valid = false;
+            $.alert({
+                title: 'Alert',
+                icon: 'fa fa-warning',
+                type: 'red',
+                content: 'Select different Territories to transfer!'
+            });
+        }
+        return valid;
+    }
+
+    function insert_transfer(e,button_id,form_id) {
+        e.preventDefault();
+        if(validate_transfer()) {
+            $("#"+button_id).prop("disabled",true);
+            document.forms[form_id].submit();
+        }
+    }
+</script>
+@endsection
+
+
+// custermer cate
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">ADD OUTLET CATEGORY</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('customer_category/save')}}" method="post" name="cus_cat_form" id="cus_cat_form" onsubmit="cus_cat_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">&nbsp</th>
+                            <th style="text-align: center">OUTLET CATEGORY CODE</th>
+                            <th style="text-align: center">OUTLET CATEGORY NAME</th>
+                            <th style="text-align: center">&nbsp</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cus_cat">
+                        <tr id="tr_1">
+                            <td style="text-align: center">
+                                <span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">
+                                    <i class="bi bi-plus-square-fill"></i>
+                                </span>
+                            </td>
+                            <td>
+                            <input type="text" id="cus_cat_code_1" name="cus_cat_code_1" class="col-md-12 form-control form-control-sm" autocomplete="off" value="{{ $customer_category_code }}" readonly />
+                            </td>
+                            <td>
+                            <input type="text" id="cus_cat_name_1" name="cus_cat_name_1" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td style="text-align: center">
+                                <span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('1');">
+                                    <i class="bi bi-x-square-fill"></i>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'cus_cat_form')">SAVE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    /* GENERATE NEW ROW */
+    function gen_item(){
+        var num = parseFloat($('#item_count').val()) + 1;
+        $('#item_count').val(num);
+        var customer_category_code_gen_ = generateCustomerCategoryCode(num);
+        var delete_count = parseFloat($('#delete_item_count').val()) + 1;
+        $('#delete_item_count').val(delete_count);
+        $('#cus_cat').append('<tr class="even pointer" id="tr_' + num + '">'
+                + '<td style="text-align: center">'
+                    + '<span class="color-success" style="cursor: pointer; font-size:18px" onclick="gen_item();">'
+                    +     '<i class="bi bi-plus-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="cus_cat_code_' + num + '" name="cus_cat_code_' + num + '" value="'+ customer_category_code_gen_ +'" readonly class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td>'
+                    +'<input type="text" id="cus_cat_name_' + num + '" name="cus_cat_name_' + num + '" class="col-md-12 form-control form-control-sm" autocomplete="off" />'
+                + '</td>'
+                + '<td style="text-align: center">'
+                    + '<span class="color-danger" style="cursor: pointer; font-size:18px" onclick="remove_item('+ num +');">'
+                    +    '<i class="bi bi-x-square-fill"></i>'
+                    + '</span>'
+                + '</td>'
+                + '</tr>');
+        $('#cus_cat_code_'+num).focus();
+    }
+
+    function generateCustomerCategoryCode(num) {
+
+        const zeroPad = (num, places) => String(num).padStart(places, '0');
+        
+        let first_row_customer_category_code = $('#cus_cat_code_1').val();
+        const wordsArray = first_row_customer_category_code.split("OC");
+        let numberPart = wordsArray[1];
+        let customer_category_code_gen = parseInt(numberPart) + parseInt(num) - 1;
+        let customer_category_code_gen_ = zeroPad(customer_category_code_gen, 5)
+        return 'OC'+customer_category_code_gen_;
+
+    }
+
+    /*REMOVE GENERATED ROW*/
+    function remove_item(num) {
+        $('#tr_' + num).remove();
+        var num = parseFloat($('#delete_item_count').val()) - 1;
+        $('#delete_item_count').val(num);
+        if (num == 0) {
+            gen_item();
+        }
+    }
+
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function cus_cat_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#cus_cat_code_' + m).val() == "") {
+                valid = false;
+                $('#cus_cat_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'orange',
+                    content: 'Enter Outlet Category Code'
+                });
+                break;
+            } else if ($('#cus_cat_name_' + m).val() == "") {
+                valid = false;
+                $('#cus_cat_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'orange',
+                    content: 'Enter Outlet Category Name'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (cus_cat_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+@endsection
+
+@extends('layouts.app')
+
+@section('css')
+    @include('includes.datatables.css')
+@endsection
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">VIEW OUTLET CATEGORY</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    @php
+    use App\Models\User\User;
+
+    if(isset(Auth::user()->u_tp_id)) {
+        $checkUserPermitedUrledit = User::checkUserPermitedUrl('OUTLET CATEGORY EDIT');
+        $checkUserPermitedUrldelete = User::checkUserPermitedUrl('OUTLET CATEGORY DELETE');
+    }
+    @endphp
+    <div class="ecommerce-widget">
+        <div class="row">
+            <div class="col-md-1 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-10 col-sm-12 col-xs-12 form-group text-center">
+                <div class="card">
+                    <div class="card-body">
+                        <table class="table table-striped table-bordered first">
+                            <thead class="thead-custom">
+                                <tr>
+                                    <th style="text-align: center">&nbsp</th>
+                                    <th style="text-align: center">OUTLET CATEGORY CODE</th>
+                                    <th style="text-align: center">OUTLET CATEGORY NAME</th>
+                                    <th style="text-align: center">ADDED DATE</th>
+                                    <th style="text-align: center">ADDED TIME</th>
+                                    <th style="text-align: center">EDIT</th>
+                                    <th style="text-align: center">STATUS</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($customer_category as $key=>$cc)
+                                @php $key = $key+1; @endphp
+                                <tr>
+                                    <td>{{$key}}</td>
+                                    <td style="text-align: left">{{$cc->cus_cat_code}}</td>
+                                    <td style="text-align: left">{{$cc->cus_cat_name}}</td>
+                                    <td>{{date('Y-m-d',strtotime($cc->created_at))}}</td>
+                                    <td>{{date('H:i:s',strtotime($cc->created_at))}}</td>
+                                    <td>
+                                        @if(!$cc->trashed())
+                                        @if ($checkUserPermitedUrledit)
+                                        <div style="text-align:center">
+                                            <a href="{{url('customer_category/edit', $cc->cus_cat_id)}}"
+                                                target="_blank"><i style="color:#0998b0;font-size:18px"
+                                                    class="fas fa-pencil-alt fa-lg"></i></a>
+                                        </div>
+                                        @else <div style="text-align:center">
+                                            <a href="javascript:void(0);"><i style="color:gray;font-size:18px"
+                                                    class="fas fa-pencil-alt fa-lg"></i></a>
+                                        </div>
+
+                                        @endif
+
+                                        @endif
+                                    </td>
+                                    <td>
+                                        @if (!$cc->trashed())
+                                        @php $current_status = 1; @endphp
+                                        @if ($checkUserPermitedUrldelete)
+                                        <div style="text-align:center">
+                                            <a href=""
+                                                onclick="change_status('{{$current_status}}','{{$cc->cus_cat_id}}')"
+                                                class="btn btn-success btn-sm">Enable</a>
+                                        </div>
+                                        @else
+                                        <div style="text-align:center">
+                                            <button disabled="disabled" class="btn btn-success btn-sm">Enable</button>
+                                        </div>
+                                        @endif
+
+                                        @else
+                                        @php $current_status = 0; @endphp
+                                        @if ($checkUserPermitedUrldelete)
+                                        <div style="text-align:center">
+                                            <a href=""
+                                                onclick="change_status('{{$current_status}}','{{$cc->cus_cat_id}}')"
+                                                class="btn btn-danger btn-sm">Disable</a>
+                                        </div>
+                                        @else <div style="text-align:center">
+                                            <button disabled="disabled" class="btn btn-danger btn-sm">Disable</button>
+                                        </div>
+
+                                        @endif
+
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-1 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+@section('js')
+
+@include('includes.datatables.js')
+
+<script type="text/javascript">
+    function change_status(status,id){
+        event.preventDefault();
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want change status of this record',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'confirm',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        $.ajax({
+                            type: "POST",
+                            url: "{{ url('/customer_category/status') }}",
+                            data: {
+                                id: id,
+                                status: status,
+                                "_token": "{{ csrf_token() }}"
+                            },
+                            success: function (data) {
+                                window.location.href = "{{ route('customer_category_view')}}";
+                            }
+                        });
+                    }
+                },
+                cancel: {
+                    text: 'cancel',
+                    btnClass: 'btn-red',
+                    action: function () {
+
+                    }
+                }
+            }
+        });
+    }
+</script>
+@endsection
+
+@extends('layouts.app')
+
+@section('title', config('sfa.type'))
+
+@section('content')
+<div class="container-fluid dashboard-content ">
+    <!-- ============================================================== -->
+    <!-- pageheader  -->
+    <!-- ============================================================== -->
+    <div class="row">
+        <div class="col-xl-12 col-lg-12 col-md-12 col-sm-12 col-12">
+            <div class="page-header" style="text-align: center;">
+                <h2 class="pageheader-title">EDIT OUTLET CATEGORY</h2>
+                <div class="page-breadcrumb">
+                    <nav aria-label="breadcrumb">
+                        <ol class="breadcrumb">
+                           
+                        </ol>
+                    </nav>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- ============================================================== -->
+    <!-- end pageheader  -->
+    <!-- ============================================================== -->
+    <div class="ecommerce-widget">
+        <form action="{{url('customer_category/update',$customer_category->cus_cat_id)}}" method="post" name="cus_cat_edit_form" id="zone_cus_cat_form" onsubmit="cus_cat_edit_validation();"> 
+        @csrf
+        <div class="row">
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+            <div class="col-md-6 col-sm-12 col-xs-12 form-group text-center">
+                <table class="table table-striped table-bordered first">
+                    <thead class="thead-custom">
+                        <tr>
+                            <th style="text-align: center">OUTLET CATEGORY CODE</th>
+                            <th style="text-align: center">OUTLET CATEGORY NAME</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cus_cat">
+                        <tr id="tr_1">
+                            <td>
+                            <input type="text" id="cus_cat_code_1" name="cus_cat_code_1" value="{{$customer_category->cus_cat_code}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                            <td>
+                            <input type="text" id="cus_cat_name_1" name="cus_cat_name_1" value="{{$customer_category->cus_cat_name}}" class="col-md-12 form-control form-control-sm" autocomplete="off" />
+                            </td>
+                        </tr>
+                    </tbody>
+                    <input type="hidden" id="item_count" name="item_count" value="1" />
+                    <input type="hidden" id="delete_item_count" name="delete_item_count" value="1" />
+                </table>
+                <div class="form-group mt-sm-1 mb-sm-1">
+                    <div class="">
+                        <button class="btn btn-secondary btn-sm" type="button" onclick="reset_page()">CLEAR</button>
+                        <button type="button" id="add" class="btn btn-primary btn-sm" onclick="form_submit('add', 'cus_cat_edit_form')">UPDATE</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-12 col-xs-12 form-group">
+            </div>
+        </div>
+        </form>
+    </div>
+</div>
+@endsection
+@section('js')
+<script type="text/javascript">
+    function reset_page(){
+        $.confirm({
+        title: 'Confirm?',
+            content: 'Are you sure do you want to reset ?',
+            type: 'green',
+            buttons: {
+                Okey: {
+                    text: 'Yes',
+                    btnClass: 'btn-blue',
+                    action: function () {
+                        location.reload();
+                    }
+                },
+                cancel: {
+                    text: 'No',
+                    btnClass: 'btn-red',
+                    action: function () {
+                    
+                    }
+                }
+            }
+        });
+    }
+
+    function cus_cat_edit_validation(){
+        valid = true;
+        for (m = 1; m <= parseInt($('#item_count').val()); m++) {
+            if ($('#cus_cat_code_' + m).val() == "") {
+                valid = false;
+                $('#cus_cat_code_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Outlet Category Code'
+                });
+                break;
+            } else if ($('#cus_cat_name_' + m).val() == "") {
+                valid = false;
+                $('#cus_cat_name_' + m).focus();
+                $.alert({
+                    title: 'Alert',
+                    icon: 'fa fa-warning',
+                    type: 'green',
+                    content: 'Enter Outlet Category Name'
+                });
+                break;
+            }
+        }
+        return valid;
+    }
+
+    function form_submit(button_id, form_id) {
+        if (cus_cat_edit_validation()) {
+            $.confirm({
+            title: 'Confirm?',
+                content: 'Are you sure do you want submit this record',
+                type: 'green',
+                buttons: {
+                    Okey: {
+                        text: 'confirm',
+                        btnClass: 'btn-blue',
+                        action: function () {
+                            document.getElementById(button_id).style.display = "none";
+                            document.forms[form_id].submit();
+                        }
+                    },
+                    cancel: {
+                        text: 'cancel',
+                        btnClass: 'btn-red',
+                        action: function () {
+
+                        }
+                    }
+                }
+            });
+        }
+    }
+</script>
+@endsection
